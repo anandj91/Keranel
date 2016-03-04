@@ -1,6 +1,7 @@
 ;
 ; Simple boot sector that prints a message to the screen using BIOS routine
 ;
+[ org 0x7c00 ]
 
 mov ah, 0x0e	; tele-type mode
 
