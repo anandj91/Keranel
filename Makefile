@@ -1,23 +1,37 @@
-run: clean build 
-	qemu-system-i386 -drive file=target/keranel.img,format=raw
+KERNEL_DIR=kernel
+BOOT_DIR=boot
+DRIVER_DIR=driver
 
-build: build_boot_sect build_kernel
-	cat target/boot_sect.bin target/kernel.bin > target/keranel.img
-	dd if=/dev/zero count=20 >> target/keranel.img
+C_SOURCES=$(wildcard kernel/*.c drivers/*.c)
+C_HEADERS=$(wildcard kernel/*.h drivers/*.h)
+OBJ=${C_SOURCES:.c=.o}
 
-build_boot_sect: init
-	nasm boot_sect.asm -f bin -o target/boot_sect.bin
+run: keranel.img
+	qemu-system-i386 -drive file=keranel.img,format=raw
 
-build_kernel: init
-	nasm kernel/kernel_entry.asm -f elf -o target/kernel_entry.o
-	gcc -ffreestanding -c kernel/kernel.c -o target/kernel.o
-	ld -o target/kernel.bin -Ttext 0x1000 target/kernel.o --oformat binary
+build: keranel.img
 
-init:
-	mkdir target
+keranel.img: ${BOOT_DIR}/boot_sect.bin kernel.bin
+	cat $^ > $@
+	dd if=/dev/zero count=20 >> $@
 
-read: build
-	od -t x1 -A n target/keranel.img
+kernel.bin: ${KERNEL_DIR}/kernel_entry.o ${OBJ}
+	ld -o $@ -Ttext 0x1000 $^ --oformat binary
+
+%.o: %.c ${C_HEADERS}
+	gcc -ffreestanding -c $^ -o $@
+
+%.o: %.asm
+	nasm $< -f elf64 -o $@
+
+%.bin: %.asm
+	nasm $< -f bin -o $@
+	
+read: kernel.bin
+	ndisasm -b 32 $<
 
 clean:
-	rm -rf target
+	rm *.bin *.img
+	rm -f ${KERNEL_DIR}/*.o ${BOOT_DIR}/*.bin ${DRIVER_DIR}/*.o
+
+

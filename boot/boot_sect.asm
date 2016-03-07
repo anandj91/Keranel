@@ -21,11 +21,11 @@ KERNEL_OFFSET equ 0x1000	; This is the memory offset to which we will load our k
   jmp $				; jump to the current address. meaning eternity.
 
 ; Utils
-%include "utils/print.asm"
-%include "utils/disk.asm"
-%include "utils/gdt.asm"
-%include "utils/print_pm.asm"
-%include "utils/switch_to_pm.asm"
+%include "boot/print.asm"
+%include "boot/disk.asm"
+%include "boot/gdt.asm"
+%include "boot/print_pm.asm"
+%include "boot/switch_to_pm.asm"
 
 [bits 16]
 ;load kernel
