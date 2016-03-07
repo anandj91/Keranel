@@ -13,10 +13,10 @@
 
   jmp $				; jump to the current address. meaning eternity.
 
-%include "print.asm"
-%include "gdt.asm"
-%include "print_pm.asm"
-%include "switch_to_pm.asm"
+%include "utils/print.asm"
+%include "utils/gdt.asm"
+%include "utils/print_pm.asm"
+%include "utils/switch_to_pm.asm"
 
 [bits 32]
 ; This is where we arrive after switching to and initializing PM.
