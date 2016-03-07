@@ -3,7 +3,7 @@ run: clean build
 
 build: assemble compile
 	cat target/boot_sect.bin target/kernel.bin > target/keranel.img
-	dd if=/dev/zero count=4 >> target/keranel.img
+	dd if=/dev/zero count=20 >> target/keranel.img
 
 assemble: init
 	nasm boot_sect.asm -f bin -o target/boot_sect.bin
