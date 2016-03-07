@@ -3,71 +3,36 @@
 ;
 [org 0x7c00]
 
-mov bx, HELLO_MSG
-call printstr
+  mov bp, 0x9000		; Set the stack
+  mov sp, bp
 
-mov [BOOT_DRIVE], dl 		; BIOS stores our boot drive in DL , so it ’s
-				; best to remember this for later.
+  mov bx, MSG_REAL_MODE
+  call print_string
 
-mov bp, 0x8000			; Here we set our stack safely out of the
-mov sp, bp			; way , at 0x8000
+  call switch_to_pm		; Note that we never return from here.
 
-mov bx, 0x9000			; Load 3 sectors to 0x0000 ( ES ):0x9000 ( BX )
-mov dh, 3			; from the boot disk.
-mov dl, [BOOT_DRIVE]
-call disk_load
-
-mov bx, [0x9000]		; Print out the first loaded word , which
-call printhex			; we expect to be 0xdada, stored
-
-mov bx, [0x9000 + 512] 		; Also , print the first word from the
-call printhex			; 2nd loaded sector : should be 0xface
-
-mov bx, GOODBYE_MSG
-call printstr
-
-jmp $				; jump to the current address. meaning eternity.
+  jmp $				; jump to the current address. meaning eternity.
 
 %include "print.asm"
-%include "disk.asm"
+%include "gdt.asm"
+%include "print_pm.asm"
+%include "switch_to_pm.asm"
 
-; util functions
-printstr:
-  call print_string 
-  push bx
-  mov bx, NL
-  call print_string
-  pop bx
-  ret
+[bits 32]
+; This is where we arrive after switching to and initializing PM.
 
-printhex:
-  call print_hex
-  push bx
-  mov bx, NL
-  call print_string
-  pop bx 
-  ret
+BEGIN_PM:
 
-; Data
-HELLO_MSG:
-  db 'Hello World!!!', 0
+  mov ebx, MSG_PROT_MODE
+  call print_string_pm		; Use our 32-bit print routine
 
-GOODBYE_MSG:
-  db 'Good Bye!!!', 0
+  jmp $
 
-NL:
-  db 0x0a, 0x0d, 0
+MSG_REAL_MODE:
+  db "Started in 16-bit Real Mode", 0
+
+MSG_PROT_MODE:
+  db "Successfully landed in 32-bit Protected Mode", 0
 
 times 510-($-$$) db 0	; Padding with zeros
 dw 0xaa55		; Magic number
-
-; We know that BIOS will load only the first 512 - byte sector from the disk ,
-; so if we purposely add a few more sectors to our code by repeating some
-; familiar numbers , we can prove to ourselfs that we actually loaded those
-; additional two sectors from the disk we booted from.
-times 256 dw 0xdada
-times 256 dw 0xface
-
-; Global variables
-BOOT_DRIVE: db 0
-
