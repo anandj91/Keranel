@@ -7,7 +7,7 @@ C_HEADERS=$(wildcard kernel/*.h drivers/*.h)
 OBJ=${C_SOURCES:.c=.o}
 
 run: keranel.img
-	qemu-system-i386 -drive file=keranel.img,format=raw
+	qemu-system-i386 -drive file=keranel.img,format=raw,if=floppy -boot a
 
 build: keranel.img
 
